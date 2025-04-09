@@ -62,6 +62,6 @@ jobs:
         with:
           release-tag: ${{ github.ref }}
           files: libclang_rt.rtsan*
-        env:
-          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+        #env:
+          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
