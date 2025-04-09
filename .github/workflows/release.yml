@@ -56,12 +56,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ubuntu_artifacts_rtsan
+      - name: List files
+        run: ls -al  
       - name: Create release
         uses: AButler/upload-release-assets@v3.0
         #uses: softprops/action-gh-release@v1
         with:
           release-tag: ${{ github.ref }}
-          files: libclang_rt.rtsan*
+          files: ./libclang_rt.rtsan*
           repo-token: ${{ secrets.GITHUB_TOKEN }}
         #env:
           #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
