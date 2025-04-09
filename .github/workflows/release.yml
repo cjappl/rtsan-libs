@@ -6,6 +6,10 @@ on:
 
 
 jobs:
+  publish:
+    permissions:
+      contents: write
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -44,5 +48,6 @@ jobs:
       - name: Create release
         uses: AButler/upload-release-assets@v3.0
         with:
+          release-tag: ${{ github.ref }}
           files: ./libclang_rt.rtsan*
           repo-token: ${{ secrets.GITHUB_TOKEN }}
