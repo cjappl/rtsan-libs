@@ -62,7 +62,7 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         #uses: softprops/action-gh-release@v1
         with:
-          release-tag: ${{ github.ref }}
+          #release-tag: ${{ github.ref }}
           files: ./libclang_rt.rtsan*
           repo-token: ${{ secrets.GITHUB_TOKEN }}
         #env:
