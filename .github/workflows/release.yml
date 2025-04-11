@@ -1,0 +1,66 @@
+name: Create build artifacts for version
+
+on:
+  push:
+    tags: ["v*"]
+
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download and Extract
+      run: make init
+
+    - name: Configure
+      run: make configure
+
+    - name: Build
+      run: make build
+
+    - name: Test
+      run: make test
+
+    - name: Copy artifacts
+      shell: bash
+      run: |
+        OSNAME=$(uname -s | tr '[:upper:]' '[:lower:]')
+        mkdir -p ./artifacts/$OSNAME
+        cp ./llvm-project/build/lib/*/libclang_rt.rtsan* ./artifacts/$OSNAME
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_artifacts_rtsan
+        path: ./artifacts/
+        retention-days: 1
+
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download darwin output
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-latest_artifacts_rtsan
+      - name: Download ubuntu output
+        uses: actions/download-artifact@v4
+        with:
+          name: ubuntu-latest_artifacts_rtsan
+      - name: List files (debug)
+        run: ls -al
+      - name: Create release
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          release-tag: ${{ github.ref_name }}
+          files: ./darwin;./linux
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
