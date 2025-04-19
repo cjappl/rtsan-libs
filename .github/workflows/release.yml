@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-latest]
 
     steps:
     - uses: actions/checkout@v4
@@ -30,22 +30,31 @@ jobs:
     # rename to libclang_rt.rtsan_linux_x86_64.a
     # This makes it clear this is for linux
     - name: Fix artifact name Ubuntu
-      if: matrix.os == 'ubuntu-latest'
+      if: contains(matrix.os, 'ubuntu')
       shell: bash
       run: | 
         ARCH=$(uname -m)
         UNAME=$(uname -s | tr '[:upper:]' '[:lower:]')
         mv ./llvm-project/build/lib/linux/libclang_rt.rtsan-${ARCH}.a ./llvm-project/build/lib/linux/libclang_rt.rtsan_${UNAME}_${ARCH}.a
 
-    - name: Upload artifact Ubuntu
+    - name: Upload artifact - Ubuntu x86
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: ubuntu_artifacts_rtsan
+        name: ubuntu_x86_artifacts_rtsan
         path: ./llvm-project/build/lib/linux/libclang_rt.rtsan*.a
         retention-days: 1
 
-    - name: Upload artifact Darwin
+    - name: Upload artifact - Ubuntu arm64
+      if: contains(matrix.os, 'ubuntu') && contains(matrix.os, 'arm')
+      uses: actions/upload-artifact@v4
+      with:
+        name: ubuntu_arm64_artifacts_rtsan
+        path: ./llvm-project/build/lib/linux/libclang_rt.rtsan*.a
+        retention-days: 1
+
+
+    - name: Upload artifact - Darwin
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
@@ -60,14 +69,10 @@ jobs:
     needs: build
 
     steps:
-      - name: Download darwin output
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
-        with:
-          name: darwin_artifacts_rtsan
-      - name: Download ubuntu output
-        uses: actions/download-artifact@v4
-        with:
-          name: ubuntu_artifacts_rtsan
+      - name: Move artifacts to root
+        run: mv artifacts/*/* ./ || true
       - name: List files (debug)
         run: ls -al
       - name: Create release
